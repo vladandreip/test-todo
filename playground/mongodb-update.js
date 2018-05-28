@@ -1,4 +1,4 @@
-const MongoClient = require('mongodb').MongoClient;
+const {MongoClient, ObjectID} = require('mongodb');
 var user = {name: 'andrew', age:25};
 var {name} = user;
 console.log(name);
@@ -16,10 +16,7 @@ MongoClient.connect('mongodb://localhost:27017/TodoApp', (err, db) =>{
         console.log('Unable to fetch todos', err);
     });//cursor, pointer catre document , toArray le introduce intr un array si reprezinta un promise
     //db.close(); 
-    //deleteMany
-    //db.collection('Todos').deleteMany({text: ''}).then((result) => {
-    //    console.log(result);
-    //})
-    //deleteOne -> sterge prima inregistrare 
-    //findOneAndDelete -> sterge prima inregistrare pe care o gaseste si returneaza documentul sters
+   db.collection('Todos').findOneAndUpdate({
+       _id: 
+   })
 });
