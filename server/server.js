@@ -4,6 +4,7 @@ const {ObjectID} = require('mongodb');
 var {mongoose} = require('./db/mongoose');
 var Todo = require('./models/todo').Todo;
 var {User} = require('./models/user');
+const port = process.env.PORT || 3000; // -> setat daca este urcat pe heroku 
 //mongodb permite salvarea documetelor de diferite forme in acceasi colectie. Mongoose permite organizarea acestora prin salvarea inregistrarilor respectand o schema
 
 // var newTodo = new Todo({
@@ -68,6 +69,6 @@ app.get('/todos/:id', (req, res) => {
         res.status(400).send();
     })
 })
-app.listen(3000, () => {//basic server
-    console.log('Started on port 3000');
+app.listen(port, () => {//basic server
+    console.log(`Started on port ${port}`);
 });
