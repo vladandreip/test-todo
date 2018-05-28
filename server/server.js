@@ -46,6 +46,13 @@ app.post('/todos', (req, res) => {//url si functia callback
         res.status(400).send(e);
     })
 });
+app.get('/todos', (req, res) => {
+    Todo.find().then((todos) => {
+        res.send({todos});//le transmitem inapoi sub forma de obiect pentru ca sa putem adauga noi proprietati in cazul in care am fi avut nevoie
+    }, (e)=>{
+        res.status(400).send(e);
+    })
+});
 app.listen(3000, () => {//basic server
     console.log('Started on port 3000');
 });
