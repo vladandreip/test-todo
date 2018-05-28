@@ -56,7 +56,7 @@ app.get('/todos', (req, res) => {
 });
 app.get('/todos/:id', (req, res) => {
     //req.params reprezinda valoarea id.ului din request
-    var id = "req.params.id";
+    var id = req.params.id;
     if(!ObjectID.isValid(id)){
         return res.status(400).send(); //return incheie executia
     }
