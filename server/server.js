@@ -1,6 +1,8 @@
-var express = require('express');
-var bodyParser = require('body-parser');
+const _ = require('lodash');
+const express = require('express');
+const bodyParser = require('body-parser');
 const {ObjectID} = require('mongodb');
+
 var {mongoose} = require('./db/mongoose');
 var Todo = require('./models/todo').Todo;
 var {User} = require('./models/user');
@@ -83,6 +85,33 @@ app.delete('/todos/:id', (req, res) => {
         res.status(400).send();
     });
 });
+//patch -> update;
+app.patch('/todos/:id', (req,res) => {
+    var id = req.params.id;
+    //se face update doar la ce vrem noi -> text si completed
+    var body = _.pick(req.body, ['text', 'completed']);//picks an array of proprieties that user is going to be able to update
+    console.log(body);
+    if(!ObjectID.isValid(id)){
+        return res.status(400).send;
+    }
+    if(_.isBoolean(body.completed) && body.completed){
+        body.completedAt = new Date().getTime();
+    }else{
+        body.completed = false;
+        body.completedAt = null;
+    }
+   Todo.findByIdAndUpdate(id, 
+       {$set:body},
+       {new:true}//new returneaza obiectul nou creat
+   ).then((todo) => {
+        if(!todo){
+            return res.status(404).send();
+        }
+        res.send({todo});//same as {todo:todo}
+   }).catch((e) => {
+       res.status(400).send();
+   })
+})
 app.listen(port, () => {//basic server
     console.log(`Started on port ${port}`);
 });
