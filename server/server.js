@@ -112,6 +112,18 @@ app.patch('/todos/:id', (req,res) => {
        res.status(400).send();
    })
 })
+//create users
+app.post('/user', (req, res) => {
+    var body = _.pick(req.body, ['email','password'])
+    var newUser = new User(body);
+    newUser.generateAuthToken().then((token) => {
+        res.header('x-auth', token).send(newUser);//custom header defined as x-auth(key value pair)
+    }).catch((e) => {
+        res.status(400).send(e);;
+   })
+});
+
 app.listen(port, () => {//basic server
     console.log(`Started on port ${port}`);
 });
+//generateAuthToken method is going to be responsible for adding a token on an individual user document, saving that and returning the token  so we can send it back to the user
