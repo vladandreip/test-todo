@@ -111,7 +111,7 @@ app.delete('/todos/:id',authenticate, (req, res) => {
     });
 });
 //patch -> update;
-app.patch('/todos/:id', (req,res) => {
+app.patch('/todos/:id',authenticate, (req,res) => {
     var id = req.params.id;
     //se face update doar la ce vrem noi -> text si completed
     var body = _.pick(req.body, ['text', 'completed']);//picks an array of proprieties that user is going to be able to update
@@ -125,9 +125,7 @@ app.patch('/todos/:id', (req,res) => {
         body.completed = false;
         body.completedAt = null;
     }
-   Todo.findByIdAndUpdate(id, 
-       {$set:body},
-       {new:true}//new returneaza obiectul nou creat
+   Todo.findOneAndUpdate({_id:id,_creator:req.user._id}, {$set:body},{new:true}//new returneaza obiectul nou creat
    ).then((todo) => {
         if(!todo){
             return res.status(404).send();
