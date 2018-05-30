@@ -53,6 +53,16 @@ UserSchema.methods.generateAuthToken = function () {
     });
 
 };
+UserSchema.methods.removeToken = function(token){
+    var user = this;
+    return user.update({
+        $pull:{//pull from the tokens array propriety the token that we are sending through the function
+            tokens:{
+                token:token
+            }
+        }
+    })//iti permite sa stergi inregistrari care corespund unor criterii dintr-un array care 
+}
 UserSchema.statics.findByToken = function(token){
     var User = this;
     var decoded;
