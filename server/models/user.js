@@ -52,5 +52,21 @@ UserSchema.methods.generateAuthToken = function () {
     });
 
 };
+UserSchema.statics.findByToken = function(token){
+    var User = this;
+    var decoded;
+    try{
+        decoded = jwt.verify(token,'abc123');
+    }catch(e){
+        return Promise.reject()//prin return nu se mai executa niciodata ce este mai jos si anume User.findOne...
+    }
+    return User.findOne({
+        _id: decoded._id,//puteam folosi quotes si aici dar nu este obligatoriu
+        'tokens.token':token, //to query a nested document we use quotes. Quotes are required when using a dot in the value
+        'tokens.access':'auth'
+    })
+};
 var User = mongoose.model('User',UserSchema);
 module.exports = {User};
+//UserSchema.statics -> model method
+//UserSchema.methods -> instance methods 

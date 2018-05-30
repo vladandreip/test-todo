@@ -122,8 +122,32 @@ app.post('/user', (req, res) => {
         res.status(400).send(e);;
    })
 });
+//middleware function that we are going to use on our routes to make them private.The actual route is not going to run until next is called inside the middleware
+var authenticate = (req,res,next) => {
+    var token = req.header('x-auth');//gets the header value. We need to pass the key to know which header we get
+    User.findByToken(token).then((user) =>{//takes the token value and return the appropiate user related to that token 
+        if(!user){
+            return Promise.reject();//de asemenea se executa catch.ul de mai de jos
+        }
+       req.user = user;//atasez userul la request ca sa pot sa il trimit din app.get
+       req.token = token; //atasez tokenul la request
+       next();//apelez next ca sa se execute app.get de mai de jos
+    }).catch((e) => {//se leaga de return  Promise.reject()
+        //401 status inseamna "Authentication is required"
+        res.status(401).send();
+        //aici nu mai apelez next deoarece nu doresc sa se execute codul de mai jos
+    });
+}
+//private route 
+app.get('/users/me', authenticate, (req, res) =>{//uses the middleware from up above
+    res.send(req.user);
+    //req si res de aici sunt aceleasi ca cele definite in middleware
+});
 
 app.listen(port, () => {//basic server
     console.log(`Started on port ${port}`);
 });
 //generateAuthToken method is going to be responsible for adding a token on an individual user document, saving that and returning the token  so we can send it back to the user
+//private routes require an x-auth token, we are going to validate that token, find the user asociated with that token 
+//req and res from the middleware are the same as from the app.get. next exists so you can tell express when your middleware function is done and this is usefull because you can have as much middleware as you want registered to a single express app. 
+//On short -> the application will continue to run after you called next
