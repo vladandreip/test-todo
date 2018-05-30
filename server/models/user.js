@@ -2,6 +2,7 @@ const mongoose = require('mongoose');
 const validator = require('validator');
 const jwt = require('jsonwebtoken');
 const _= require('lodash');
+const bcrypt = require('bcryptjs');
 //we are using a Schema to be able to implement custom methods
 var UserSchema = new mongoose.Schema({//defines a schema for a user
     email:{
@@ -67,6 +68,20 @@ UserSchema.statics.findByToken = function(token){
     })
 };
 var User = mongoose.model('User',UserSchema);
+
+UserSchema.pre('save', function(next){//folosim functie ca sa putem utiliza this
+    var user = this;
+    if(user.isModified('password')){//daca se modifica parola dorim sa o hash.uim si sa o stocam. Folosim acest lucru deoarece de exemplu putem modifica mailul => se executa codul pre si se hashuieste parola hashuita si nu dorim acest lucru. Asa ca modificam parola doar atunci cand este nevoie(atunci cand se schimba -> update)
+        bcrypt.genSalt(10, (err, salt) => {
+            bcrypt.hash(user.password, salt, (err, hash) => {
+                user.password = hash;
+                next();
+            })
+        })
+    }else{
+        next();
+    }
+})//run code before the save event 
 module.exports = {User};
 //UserSchema.statics -> model method
 //UserSchema.methods -> instance methods 
