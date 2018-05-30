@@ -39,10 +39,26 @@ const port = process.env.PORT || 3000; // -> setat daca este urcat pe heroku
 var app = express();//stocheaza aplicatia express
 app.use(bodyParser.json());//our application uses bodyParser middleware -> the return of bodyParser.json() is a function and that is the middleware that we need to give to express -> we can now send json to our express aplication
 //body parser is going to take the json and convert it into an object, ataching it on to this request object
-app.post('/todos', (req, res) => {//url si functia callback
+var authenticate = (req,res,next) => {
+    var token = req.header('x-auth');//gets the header value. We need to pass the key to know which header we get
+    User.findByToken(token).then((user) =>{//takes the token value and return the appropiate user related to that token 
+        if(!user){
+            return Promise.reject();//de asemenea se executa catch.ul de mai de jos
+        }
+       req.user = user;//atasez userul la request ca sa pot sa il trimit din app.get
+       req.token = token; //atasez tokenul la request
+       next();//apelez next ca sa se execute app.get de mai de jos
+    }).catch((e) => {//se leaga de return  Promise.reject()
+        //401 status inseamna "Authentication is required"
+        res.status(401).send();
+        //aici nu mai apelez next deoarece nu doresc sa se execute codul de mai jos
+    });
+}
+app.post('/todos',authenticate, (req, res) => {//url si functia callback
     console.log(req.body); //body gets store by body-parser
     var todo = new Todo({
-        text: req.body.text
+        text: req.body.text,
+        _creator: req.user._id
     });
     todo.save().then((doc) => {
         res.send(doc);
@@ -50,20 +66,25 @@ app.post('/todos', (req, res) => {//url si functia callback
         res.status(400).send(e);
     })
 });
-app.get('/todos', (req, res) => {
-    Todo.find().then((todos) => {
+app.get('/todos', authenticate, (req, res) => {
+    Todo.find({//returneaza doar documentele care au acelasi id cu 
+        _creator: req.user._id
+    }).then((todos) => {
         res.send({todos});//le transmitem inapoi sub forma de obiect pentru ca sa putem adauga noi proprietati in cazul in care am fi avut nevoie
     }, (e)=>{
         res.status(400).send(e);
     })
 });
-app.get('/todos/:id', (req, res) => {
+app.get('/todos/:id', authenticate, (req, res) => {
     //req.params reprezinda valoarea id.ului din request
     var id = req.params.id;
     if(!ObjectID.isValid(id)){
         return res.status(400).send(); //return incheie executia
     }
-    Todo.findById(id).then((todo) =>{
+    Todo.findOne({
+        _id: id,
+        _creator:req.user._id
+    }).then((todo) =>{
         if(!todo){
             return res.status(404).send;
         }
@@ -72,12 +93,15 @@ app.get('/todos/:id', (req, res) => {
         res.status(400).send();
     })
 })
-app.delete('/todos/:id', (req, res) => {
+app.delete('/todos/:id',authenticate, (req, res) => {
     var id = req.params.id;
     if(!ObjectID.isValid(id)){
         return res.status(400).send;
     }
-    Todo.findByIdAndRemove(id).then((todo) => {
+    Todo.findOneAndRemove({
+        _id:id,
+        _creator:req.user._id
+    }).then((todo) => {
         if(!todo){
             return res.status(404).send();
         }
@@ -124,21 +148,21 @@ app.post('/user', (req, res) => {
    })
 });
 //middleware function that we are going to use on our routes to make them private.The actual route is not going to run until next is called inside the middleware
-var authenticate = (req,res,next) => {
-    var token = req.header('x-auth');//gets the header value. We need to pass the key to know which header we get
-    User.findByToken(token).then((user) =>{//takes the token value and return the appropiate user related to that token 
-        if(!user){
-            return Promise.reject();//de asemenea se executa catch.ul de mai de jos
-        }
-       req.user = user;//atasez userul la request ca sa pot sa il trimit din app.get
-       req.token = token; //atasez tokenul la request
-       next();//apelez next ca sa se execute app.get de mai de jos
-    }).catch((e) => {//se leaga de return  Promise.reject()
-        //401 status inseamna "Authentication is required"
-        res.status(401).send();
-        //aici nu mai apelez next deoarece nu doresc sa se execute codul de mai jos
-    });
-}
+// var authenticate = (req,res,next) => {
+//     var token = req.header('x-auth');//gets the header value. We need to pass the key to know which header we get
+//     User.findByToken(token).then((user) =>{//takes the token value and return the appropiate user related to that token 
+//         if(!user){
+//             return Promise.reject();//de asemenea se executa catch.ul de mai de jos
+//         }
+//        req.user = user;//atasez userul la request ca sa pot sa il trimit din app.get
+//        req.token = token; //atasez tokenul la request
+//        next();//apelez next ca sa se execute app.get de mai de jos
+//     }).catch((e) => {//se leaga de return  Promise.reject()
+//         //401 status inseamna "Authentication is required"
+//         res.status(401).send();
+//         //aici nu mai apelez next deoarece nu doresc sa se execute codul de mai jos
+//     });
+// }
 //private route 
 app.get('/users/me', authenticate, (req, res) =>{//uses the middleware from up above
     res.send(req.user);
