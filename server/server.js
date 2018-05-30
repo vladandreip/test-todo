@@ -2,6 +2,7 @@ const _ = require('lodash');
 const express = require('express');
 const bodyParser = require('body-parser');
 const {ObjectID} = require('mongodb');
+const bcrypt = require('bcryptjs');
 
 var {mongoose} = require('./db/mongoose');
 var Todo = require('./models/todo').Todo;
@@ -143,7 +144,17 @@ app.get('/users/me', authenticate, (req, res) =>{//uses the middleware from up a
     res.send(req.user);
     //req si res de aici sunt aceleasi ca cele definite in middleware
 });
-
+//LOGIN -> POST /users/login {email, password}
+app.post('/users/login', (req,res) => {
+    var body = _.pick(req.body, ['email', 'password']);
+    User.findByCredentials(body.email, body.password).then((user) => {
+        return user.generateAuthToken().then((token) => {//daca este o eroare, se leaga de catch.ul de mai jos
+            res.header('x-auth', token).send(user);
+        })
+   }).catch((e) => {
+        res.status(400).send();
+   });
+})
 app.listen(port, () => {//basic server
     console.log(`Started on port ${port}`);
 });
