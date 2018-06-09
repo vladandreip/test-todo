@@ -6,7 +6,7 @@ const bcrypt = require('bcryptjs');
 //we are using a Schema to be able to implement custom methods
 var UserSchema = new mongoose.Schema({//defines a schema for a user
     email:{
-        default: 'cacat',
+        default: 'default',
         required:true,
         type: String,
         trim:true,

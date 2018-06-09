@@ -5,8 +5,9 @@ const {ObjectID} = require('mongodb');
 const bcrypt = require('bcryptjs');
 
 var {mongoose} = require('./db/mongoose');
-var Todo = require('./models/todo').Todo;
+var {Curs} = require('./models/cursuri');
 var {User} = require('./models/user');
+var {Prezenta} = require('./models/prezenta');
 const port = process.env.PORT || 3000; // -> setat daca este urcat pe heroku 
 //mongodb permite salvarea documetelor de diferite forme in acceasi colectie. Mongoose permite organizarea acestora prin salvarea inregistrarilor respectand o schema
 
@@ -54,64 +55,77 @@ var authenticate = (req,res,next) => {
         //aici nu mai apelez next deoarece nu doresc sa se execute codul de mai jos
     });
 }
-app.post('/todos',authenticate, (req, res) => {//url si functia callback
+app.post('/prezenta', authenticate, (req,res) => {
+    var prezenta = new Prezenta({
+        nume: req.body.nume,
+        prenume: req.body.prenume,
+        _creator: req.user._id
+    });
+    prezenta.save().then((doc) => {
+        res.send(doc);
+    }, (e) => {
+        res.status(400).send(e);
+    });
+})
+app.post('/cursuri',authenticate, (req, res) => {//url si functia callback
     console.log(req.body); //body gets store by body-parser
-    var todo = new Todo({
+    var curs = new Curs({
         text: req.body.text,
         _creator: req.user._id
     });
-    todo.save().then((doc) => {
+    curs.save().then((doc) => {
         res.send(doc);
     }, (e) => {
         res.status(400).send(e);
     })
 });
-app.get('/todos', authenticate, (req, res) => {
-    Todo.find({//returneaza doar documentele care au acelasi id cu 
+app.get('/cursuri', authenticate, (req, res) => {
+    Curs.find({//returneaza doar documentele care au acelasi id cu 
         _creator: req.user._id
-    }).then((todos) => {
-        res.send({todos});//le transmitem inapoi sub forma de obiect pentru ca sa putem adauga noi proprietati in cazul in care am fi avut nevoie
+    }).then((curses) => {
+        res.send({curses});//le transmitem inapoi sub forma de obiect pentru ca sa putem adauga noi proprietati in cazul in care am fi avut nevoie
     }, (e)=>{
         res.status(400).send(e);
     })
 });
-app.get('/todos/:id', authenticate, (req, res) => {
+app.get('/cursuri/:id', authenticate, (req, res) => {
     //req.params reprezinda valoarea id.ului din request
     var id = req.params.id;
     if(!ObjectID.isValid(id)){
         return res.status(400).send(); //return incheie executia
     }
-    Todo.findOne({
+    Curs.findOne({
         _id: id,
         _creator:req.user._id
-    }).then((todo) =>{
-        if(!todo){
+    }).then((curs) =>{
+        if(!curs){
             return res.status(404).send;
         }
-        res.status(200).send({todo});
+        res.status(200).send({curs});
     }).catch((e) => {
         res.status(400).send();
     })
 })
-app.delete('/todos/:id',authenticate, (req, res) => {
+app.delete('/cursuri/:id',authenticate, (req, res) => {
     var id = req.params.id;
     if(!ObjectID.isValid(id)){
         return res.status(400).send;
     }
-    Todo.findOneAndRemove({
+    Curs.findOneAndRemove({
         _id:id,
         _creator:req.user._id
-    }).then((todo) => {
-        if(!todo){
+    }).then((curs) => {
+        if(!curs){
             return res.status(404).send();
         }
-        res.send(todo);
+        res.send(curs);
     }).catch((e) => {
         res.status(400).send();
     });
 });
 //patch -> update;
-app.patch('/todos/:id',authenticate, (req,res) => {
+//trebuie modificat sa nu mai existe completed si completedAt
+app.patch('/cursuri/:id',authenticate, (req,res) => {
     var id = req.params.id;
     //se face update doar la ce vrem noi -> text si completed
     var body = _.pick(req.body, ['text', 'completed']);//picks an array of proprieties that user is going to be able to update
@@ -125,12 +139,12 @@ app.patch('/todos/:id',authenticate, (req,res) => {
         body.completed = false;
         body.completedAt = null;
     }
-   Todo.findOneAndUpdate({_id:id,_creator:req.user._id}, {$set:body},{new:true}//new returneaza obiectul nou creat
-   ).then((todo) => {
-        if(!todo){
+   Curs.findOneAndUpdate({_id:id,_creator:req.user._id}, {$set:body},{new:true}//new returneaza obiectul nou creat
+   ).then((curs) => {
+        if(!curs){
             return res.status(404).send();
         }
-        res.send({todo});//same as {todo:todo}
+        res.send({curs});//same as {todo:todo}
    }).catch((e) => {
        res.status(400).send();
    })
