@@ -10,7 +10,13 @@ var Prezenta = mongoose.model('Prezenta', {
         type:String,
         required: true,
         minlength: 1,
-        trim: true
+        
+    },
+    grupa:{
+        type:String, 
+        required:true,
+        minlength:1,
+        trim:true
     },
     _creator:{
         type: mongoose.Schema.Types.ObjectId,

@@ -59,6 +59,7 @@ app.post('/prezenta', authenticate, (req,res) => {
     var prezenta = new Prezenta({
         nume: req.body.nume,
         prenume: req.body.prenume,
+        grupa:req.body.grupa,
         _creator: req.user._id
     });
     prezenta.save().then((doc) => {
