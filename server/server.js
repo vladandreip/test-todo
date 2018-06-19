@@ -63,7 +63,7 @@ app.post('/prezenta', authenticate, (req,res) => {
         _creator: req.user._id
     });
     prezenta.save().then((doc) => {
-        res.send(doc);
+        res.status(200).send(doc);
     }, (e) => {
         res.status(400).send(e);
     });
