@@ -22,6 +22,10 @@ var Prezenta = mongoose.model('Prezenta', {
     _creator:{
         type: mongoose.Schema.Types.ObjectId,
         required: true
+    },
+    _course:{
+        type: mongoose.Schema.Types.ObjectId,
+        required: true
     }
 });
 module.exports = {Prezenta};

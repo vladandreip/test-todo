@@ -54,12 +54,30 @@ var authenticate = (req,res,next) => {
         res.status(401).send();
         //aici nu mai apelez next deoarece nu doresc sa se execute codul de mai jos
     });
-}
+}/*
 app.post('/prezenta', authenticate, (req,res) => {
     var prezenta = new Prezenta({
         nume: req.body.nume,
         prenume: req.body.prenume,
         grupa:req.body.grupa,
+        _creator: req.user._id
+    });
+    prezenta.save().then((doc) => {
+        res.status(200).send(doc);
+    }, (e) => {
+        res.status(400).send(e);
+    });
+})*/
+app.post('/prezenta/:id', authenticate, (req,res) => {
+    var id = req.params.id;
+    if(!ObjectID.isValid(id)){
+        return res.status(400).send(); //return incheie executia
+    }
+    var prezenta = new Prezenta({
+        nume: req.body.nume,
+        prenume: req.body.prenume,
+        grupa:req.body.grupa,
+        _course: id,
         _creator: req.user._id
     });
     prezenta.save().then((doc) => {
