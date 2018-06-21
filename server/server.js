@@ -77,8 +77,8 @@ app.post('/prezenta/:id', authenticate, (req,res) => {
         nume: req.body.nume,
         prenume: req.body.prenume,
         grupa:req.body.grupa,
-        _course: id,
-        _creator: req.user._id
+        _creator: req.user._id,
+        _course: id
     });
     prezenta.save().then((doc) => {
         res.status(200).send(doc);
