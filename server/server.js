@@ -94,11 +94,11 @@ app.get('/prezenta/:id', authenticate, (req,res) => {
     Prezenta.findOne({
         _course: id,
         //_creator:req.user._id
-    }).then((curs) =>{
-        if(!curs){
+    }).then((prezenta) =>{
+        if(!prezenta){
             return res.status(404).send;
         }
-        res.status(200).send({curs});
+        res.status(200).send({prezenta});
     }).catch((e) => {
         res.status(400).send();
     })
