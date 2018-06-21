@@ -86,6 +86,23 @@ app.post('/prezenta/:id', authenticate, (req,res) => {
         res.status(400).send(e);
     });
 })
+app.get('/prezenta/:id', authenticate, (req,res) => {
+    var id = req.params.id;
+    if(!ObjectID.isValid(id)){
+        return res.status(400).send(); //return incheie executia
+    }
+    Prezenta.findOne({
+        _course: id,
+        //_creator:req.user._id
+    }).then((curs) =>{
+        if(!curs){
+            return res.status(404).send;
+        }
+        res.status(200).send({curs});
+    }).catch((e) => {
+        res.status(400).send();
+    })
+})
 app.post('/cursuri',authenticate, (req, res) => {//url si functia callback
     console.log(req.body); //body gets store by body-parser
     var curs = new Curs({
