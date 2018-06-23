@@ -5,6 +5,19 @@ const _= require('lodash');
 const bcrypt = require('bcryptjs');
 //we are using a Schema to be able to implement custom methods
 var UserSchema = new mongoose.Schema({//defines a schema for a user
+    nume: {
+        type:String,
+        required: true,
+        minlength: 1,
+        trim: true
+    },
+    prenume: {
+        type:String,
+        required: true,
+        minlength: 1,
+        trim:true
+        
+    },
     email:{
         default: 'default',
         required:true,
@@ -40,7 +53,7 @@ UserSchema.methods.toJSON = function(){//determines what data to send back.(we w
   
     //var userObject = user.toObject();//user.toObject is responsible for taking your mongoose variable 'user' and converting it into a regular object where only the proprieties available in the document exist
     
-    return _.pick(user, ['_id', 'email']);
+    return _.pick(user, ['_id','nume','prenume', 'email']);
 };
 UserSchema.methods.generateAuthToken = function () {
     var user = this;

@@ -42,19 +42,24 @@ app.use(bodyParser.json());//our application uses bodyParser middleware -> the r
 //body parser is going to take the json and convert it into an object, ataching it on to this request object
 var authenticate = (req,res,next) => {
     var token = req.header('x-auth');//gets the header value. We need to pass the key to know which header we get
+    console.log(token);
     User.findByToken(token).then((user) =>{//takes the token value and return the appropiate user related to that token 
         if(!user){
+            console.log("nu am gasit");
             return Promise.reject();//de asemenea se executa catch.ul de mai de jos
         }
+        console.log("am gasit");
        req.user = user;//atasez userul la request ca sa pot sa il trimit din app.get
        req.token = token; //atasez tokenul la request
        next();//apelez next ca sa se execute app.get de mai de jos
     }).catch((e) => {//se leaga de return  Promise.reject()
         //401 status inseamna "Authentication is required"
+        console.log("nu se face autentificarea");
         res.status(401).send();
         //aici nu mai apelez next deoarece nu doresc sa se execute codul de mai jos
     });
-}/*
+}
+/*
 app.post('/prezenta', authenticate, (req,res) => {
     var prezenta = new Prezenta({
         nume: req.body.nume,
@@ -68,11 +73,12 @@ app.post('/prezenta', authenticate, (req,res) => {
         res.status(400).send(e);
     });
 })*/
+
 app.post('/prezenta/:id', authenticate, (req,res) => {
     var id = req.params.id;
-    if(!ObjectID.isValid(id)){
-        return res.status(400).send(); //return incheie executia
-    }
+    //if(!ObjectID.isValid(id)){
+    //    return res.status(400).send(); //return incheie executia
+   // }
     var prezenta = new Prezenta({
         nume: req.body.nume,
         prenume: req.body.prenume,
@@ -81,7 +87,7 @@ app.post('/prezenta/:id', authenticate, (req,res) => {
         _course: id
     });
     prezenta.save().then((doc) => {
-        res.status(200).send(doc);
+        res.send(doc);
     }, (e) => {
         res.status(400).send(e);
     });
@@ -91,30 +97,18 @@ app.get('/prezenta/:id', authenticate, (req,res) => {
     if(!ObjectID.isValid(id)){
         return res.status(400).send(); //return incheie executia
     }
-    Prezenta.findOne({
+    Prezenta.find({
         _course: id,
         //_creator:req.user._id
-    }).then((prezenta) =>{
-        if(!prezenta){
+    }).then((prezente) =>{
+        if(!prezente){
             return res.status(404).send;
         }
-        res.status(200).send({prezenta});
+        res.status(200).send({prezente});
     }).catch((e) => {
         res.status(400).send();
     })
 })
-app.post('/cursuri',authenticate, (req, res) => {//url si functia callback
-    console.log(req.body); //body gets store by body-parser
-    var curs = new Curs({
-        text: req.body.text,
-        _creator: req.user._id
-    });
-    curs.save().then((doc) => {
-        res.send(doc);
-    }, (e) => {
-        res.status(400).send(e);
-    })
-});
 app.get('/cursuri', authenticate, (req, res) => {
     Curs.find({//returneaza doar documentele care au acelasi id cu 
         _creator: req.user._id
@@ -124,7 +118,21 @@ app.get('/cursuri', authenticate, (req, res) => {
         res.status(400).send(e);
     })
 });
-app.get('/cursuri/:id', authenticate, (req, res) => {
+app.get('/cursuri/public/:id', (req, res) => {
+    var id = req.params.id;
+    if(!ObjectID.isValid(id)){
+        return res.status(400).send(); //return incheie executia
+    }
+    Curs.find({//returneaza doar documentele care au acelasi id cu 
+        _creator:id
+    }).then((curses) => {
+        res.send({curses});//le transmitem inapoi sub forma de obiect pentru ca sa putem adauga noi proprietati in cazul in care am fi avut nevoie
+    }, (e)=>{
+        res.status(400).send(e);
+    })
+});
+//app.get('/cursuri/:id', authenticate, (req, res) => {
+    app.get('/cursuri/:id', (req, res) => {
     //req.params reprezinda valoarea id.ului din request
     var id = req.params.id;
     if(!ObjectID.isValid(id)){
@@ -142,6 +150,18 @@ app.get('/cursuri/:id', authenticate, (req, res) => {
         res.status(400).send();
     })
 })
+app.post('/cursuri',authenticate, (req, res) => {//url si functia callback
+    console.log(req.body); //body gets store by body-parser
+    var curs = new Curs({
+        text: req.body.text,
+        _creator: req.user._id
+    });
+    curs.save().then((doc) => {
+        res.send(doc);
+    }, (e) => {
+        res.status(400).send(e);
+    })
+});
 app.delete('/cursuri/:id',authenticate, (req, res) => {
     var id = req.params.id;
     if(!ObjectID.isValid(id)){
@@ -187,13 +207,23 @@ app.patch('/cursuri/:id',authenticate, (req,res) => {
 })
 //create users
 app.post('/user', (req, res) => {
-    var body = _.pick(req.body, ['email','password'])
+    var body = _.pick(req.body, ['nume','prenume','email','password'])
     var newUser = new User(body);
     newUser.generateAuthToken().then((token) => {
         res.header('x-auth', token).send(newUser);//custom header defined as x-auth(key value pair)
     }).catch((e) => {
         res.status(400).send(e);;
    })
+});
+app.get('/users',(req,res) => {
+    User.find().then((organizatori) => {
+        if(!organizatori){
+            return res.status(400).send;
+        }
+        res.status(200).send({organizatori});
+    }).catch((e) => {
+        res.status(400).send;
+    })
 });
 //middleware function that we are going to use on our routes to make them private.The actual route is not going to run until next is called inside the middleware
 // var authenticate = (req,res,next) => {
