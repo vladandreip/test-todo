@@ -8,6 +8,7 @@ var {mongoose} = require('./db/mongoose');
 var {Curs} = require('./models/cursuri');
 var {User} = require('./models/user');
 var {Prezenta} = require('./models/prezenta');
+var {Inscriere} = require('./models/inscriere');
 const port = process.env.PORT || 3000; // -> setat daca este urcat pe heroku 
 //mongodb permite salvarea documetelor de diferite forme in acceasi colectie. Mongoose permite organizarea acestora prin salvarea inregistrarilor respectand o schema
 
@@ -205,6 +206,66 @@ app.patch('/cursuri/:id',authenticate, (req,res) => {
        res.status(400).send();
    })
 })
+/*
+app.post('/inregistrare/:id',(req, res) => {
+    var id = req.params.id;
+    if(!ObjectID.isValid(id)){
+        return res.status(400).send;
+    }
+    var body = _.pick(req.body, ['unic'])
+    console.log(body);
+    Inscriere.findOne({
+        unic:body.unic
+    }).then((inscriere) => {
+        console.log(inscriere);
+        if(!inscriere){
+            var inscriereNoua = new Inscriere({
+                unic: body.unic,
+                _course:[{id}]
+            });
+            inscriereNoua.save().then((doc) => {
+                res.status(200).send(doc);
+            }).catch((e) => {
+                res.status(400).send();
+            });
+        }
+        inscriere._course =  inscriere._course.concat({id});
+        res.send(inscriere);
+    }).catch((e) => {
+        res.status(400).send();
+    });
+})*/
+app.post('/inregistrare/:id',(req, res) => {
+    var id = req.params.id;
+    if(!ObjectID.isValid(id)){
+        return res.status(400).send;
+    }
+    var body = _.pick(req.body, ['unic'])
+    var inscriereNoua = new Inscriere({
+        unic: body.unic,
+        _course:id
+    });
+    inscriereNoua.save().then((doc) => {
+        res.status(200).send(doc);
+    }).catch((e) => {
+        res.status(400).send();
+    });
+
+});
+//returneaza inregistrarile avand id-ul unic(al telefonului)
+app.get('/inregistrare/:id',(req, res) => {
+    var unique = req.params.id;
+    var body = _.pick(req.body, ['unic'])
+    Inscriere.find({
+        unic:unique
+    }).then((inscrieri) => {
+        res.send({inscrieri});//le transmitem inapoi sub forma de obiect pentru ca sa putem adauga noi proprietati in cazul in care am fi avut nevoie
+    }, (e)=>{
+        res.status(400).send(e);
+    })
+   
+
+});
 //create users
 app.post('/user', (req, res) => {
     var body = _.pick(req.body, ['nume','prenume','email','password'])
