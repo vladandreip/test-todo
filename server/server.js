@@ -117,6 +117,22 @@ app.get('/prezenta/:id', authenticate, (req,res) => {
         res.status(400).send();
     })
 })
+app.delete('/prezenta/:id',authenticate, (req, res) => {
+    var id = req.params.id;
+    if(!ObjectID.isValid(id)){
+        return res.status(400).send;
+    }
+    Prezenta.findOneAndRemove({
+        _id:id,
+    }).then((prezenta) => {
+        if(!prezenta){
+            return res.status(404).send();
+        }
+        res.send(prezenta);
+    }).catch((e) => {
+        res.status(400).send();
+    });
+});
 app.get('/cursuri', authenticate, (req, res) => {
     Curs.find({//returneaza doar documentele care au acelasi id cu 
         _creator: req.user._id
