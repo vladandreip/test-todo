@@ -84,6 +84,7 @@ app.post('/prezenta/:id', authenticate, (req,res) => {
         nume: req.body.nume,
         prenume: req.body.prenume,
         grupa:req.body.grupa,
+        data:req.body.data,
         _creator: req.user._id,
         _course: id
     });
@@ -95,13 +96,19 @@ app.post('/prezenta/:id', authenticate, (req,res) => {
 })
 app.get('/prezenta/:id', authenticate, (req,res) => {
     var id = req.params.id;
+    var startDate = req.query.startDate;
+    var endDate = req.query.endDate;
     if(!ObjectID.isValid(id)){
         return res.status(400).send(); //return incheie executia
     }
     Prezenta.find({
         _course: id,
+
         //_creator:req.user._id
-    }).then((prezente) =>{
+    })
+    .where('data').gt(startDate).lt(endDate)
+    .sort('nume')
+    .then((prezente) =>{
         if(!prezente){
             return res.status(404).send;
         }
