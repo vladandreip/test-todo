@@ -84,6 +84,7 @@ app.post('/prezenta/:id', authenticate, (req,res) => {
         nume: req.body.nume,
         prenume: req.body.prenume,
         grupa:req.body.grupa,
+        email:req.body.email,
         data:req.body.data,
         _creator: req.user._id,
         _course: id
@@ -302,10 +303,13 @@ app.post('/inregistrare/:id',(req, res) => {
     if(!ObjectID.isValid(id)){
         return res.status(400).send;
     }
-    var body = _.pick(req.body, ['unic'])
+    var body = _.pick(req.body, ['unic','nume','prenume','grupa','email'])
     var inscriereNoua = new Inscriere({
         unic: body.unic,
-        _course:id
+        _course:id,
+        nume: body.nume,
+        prenume: body.prenume,
+        email: body.email
     });
     inscriereNoua.save().then((doc) => {
         res.status(200).send(doc);
