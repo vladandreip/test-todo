@@ -35,7 +35,7 @@ var UserSchema = new mongoose.Schema({//defines a schema for a user
         require:true,
         minlength:6
     },
-    tokens: [{
+    tokens: {
         access:{
             type: String,
             required:true
@@ -44,7 +44,7 @@ var UserSchema = new mongoose.Schema({//defines a schema for a user
             type:String,
             required:true
         }
-    }] 
+    }
 });
 //UserSchema.methods permite depozitarea metodelor
 UserSchema.methods.toJSON = function(){//determines what data to send back.(we want to send back the id and the email after the request)
@@ -60,7 +60,9 @@ UserSchema.methods.generateAuthToken = function () {
     var access = 'auth'
     var token = jwt.sign({_id: user._id, access}, 'abc123').toString();//toHexString -> passes the string value as apposed to the object id
   
-    user.tokens = user.tokens.concat([{access, token}]);
+    //user.tokens = user.tokens.concat([{access, token}]);
+    user.tokens.access = access;
+    user.tokens.token = token;
     return user.save().then(() => {
         return token;
     });
