@@ -319,8 +319,8 @@ app.post('/inregistrare/:id',(req, res) => {
 
 });
 //returneaza inregistrarile avand id-ul unic(al telefonului)
-app.get('/inregistrare/:id',(req, res) => {
-    var unique = req.params.id;
+app.get('/inregistrare/:idUnic',(req, res) => {
+    var unique = req.params.idUnic;
     var body = _.pick(req.body, ['unic'])
     Inscriere.find({
         unic:unique
