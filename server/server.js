@@ -77,9 +77,9 @@ app.post('/prezenta', authenticate, (req,res) => {
 
 app.post('/prezenta/:id', authenticate, (req,res) => {
     var id = req.params.id;
-    //if(!ObjectID.isValid(id)){
-    //    return res.status(400).send(); //return incheie executia
-   // }
+    if(!ObjectID.isValid(id)){
+        return res.status(400).send();
+    }
     var prezenta = new Prezenta({
         nume: req.body.nume,
         prenume: req.body.prenume,
@@ -94,13 +94,30 @@ app.post('/prezenta/:id', authenticate, (req,res) => {
         res.status(400).send(e);
     });
 })
-app.get('/prezenta/:id', authenticate, (req,res) => {
-    var id = req.params.id;
+app.get('/prezenta/:cursId', authenticate, (req,res) => {
+    var id = req.params.cursId;
     var startDate = req.query.startDate;
     var endDate = req.query.endDate;
+    console.log(endDate);
+    console.log("AOLO")
     if(!ObjectID.isValid(id)){
         return res.status(400).send(); //return incheie executia
     }
+    if(!startDate && !endDate){
+        console.log("AOLO2")
+        Prezenta.find({
+            _course: id,
+        })
+        .sort('nume')
+        .then((prezente) =>{
+            if(!prezente){
+                return res.status(404).send;
+            }
+            return res.status(200).send({prezente});
+        }).catch((e) => {
+            return res.status(400).send();
+        })
+    }else{
     Prezenta.find({
         _course: id,
 
@@ -116,6 +133,7 @@ app.get('/prezenta/:id', authenticate, (req,res) => {
     }).catch((e) => {
         res.status(400).send();
     })
+}
 })
 app.delete('/prezenta/:id',authenticate, (req, res) => {
     var id = req.params.id;
@@ -126,7 +144,7 @@ app.delete('/prezenta/:id',authenticate, (req, res) => {
         _id:id,
     }).then((prezenta) => {
         if(!prezenta){
-            return res.status(404).send();
+            return res.status(404).send;
         }
         res.send(prezenta);
     }).catch((e) => {
@@ -186,7 +204,7 @@ app.post('/cursuri',authenticate, (req, res) => {//url si functia callback
         res.status(400).send(e);
     })
 });
-app.delete('/cursuri/:id',authenticate, (req, res) => {
+app.delete('/cursuri/:id',authenticate, (req, res) => {//sterge cursul si prezentele asociate
     var id = req.params.id;
     if(!ObjectID.isValid(id)){
         return res.status(400).send;
@@ -198,11 +216,32 @@ app.delete('/cursuri/:id',authenticate, (req, res) => {
         if(!curs){
             return res.status(404).send();
         }
-        res.send(curs);
+        Inscriere.remove({_course:id}).then((rezultat) => {
+            Prezenta.remove({_course:id}).then((rezultat) => {
+                res.send(curs);
+            });
+        });
+        
+        
     }).catch((e) => {
         res.status(400).send();
     });
 });
+/*
+app.delete('/prezente/:idCurs', authenticate, (req,res) => {//sterge toate prezentele facute la idCurs
+    var id = req.params.idCurs;
+    if(!ObjectID.isValid(id)){
+        return res.status(400).send;
+    }
+    Prezenta.remove({_course:id}).then((rezultat) => {
+        if(!rezultat){
+            return res.status(404).send;
+        }
+        res.send(rezultat);
+    }).catch((e) => {
+        res.status(400).send;
+    })
+})*/
 //patch -> update;
 //trebuie modificat sa nu mai existe completed si completedAt
 app.patch('/cursuri/:id',authenticate, (req,res) => {
