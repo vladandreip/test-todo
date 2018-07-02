@@ -26,11 +26,7 @@ var Prezenta = mongoose.model('Prezenta', {
         type: String,
         trim:true,
         minlength:1,
-        unique:true,
-        validate: {
-            validator: validator.isEmail,
-            message: '{VALUE} is not a valid email'
-        }
+        unique:true
     },
     data:{
         type:Number,
